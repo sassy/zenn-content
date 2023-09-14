@@ -3,7 +3,7 @@ title: "ひとりインプット奴隷合宿に行ってきた"
 emoji: "🐕"
 type: "idea" # tech: 技術記事 / idea: アイデア
 topics: ["ポエム", "合宿", "開発合宿"]
-published: false
+published: true
 ---
 
 育児休業中の私、ずっと家事育児の毎日でした。
