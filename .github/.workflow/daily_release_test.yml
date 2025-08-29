@@ -1,0 +1,49 @@
+name: Create Daily Release (Test)
+on:
+  workflow_dispatch:
+
+permissions:
+  pull-requests: write
+  contents: write
+
+jobs:
+  bump_version:
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      - name: Fetch tags
+        # actions/checkout の fetch-tags: true が正しく動かないので手動でfetchする
+        # <https://github.com/actions/checkout/issues/1471>
+        run: git fetch --tags
+      - name: Git config
+        # <https://github.com/actions/checkout/pull/1184>
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+      - name: Bump version and create PR
+        run: |
+          # HEADにタグがついていればバージョンアップしない
+          if git describe --exact-match --tags HEAD > /dev/null 2>&1; then
+            echo "Tag already exists. Skip bump version."
+            exit 0
+          fi
+          # パッチバージョンを上げる
+          OLD_VERSION=$(cat package.json | jq -r '.version')
+          npm version patch --no-git-tag-version
+          NEW_VERSION=$(cat package.json | jq -r '.version')
+          # コミットを作成
+          PR_BRANCH_NAME="BUMP_VERSION-${NEW_VERSION}"
+          git checkout -b "${PR_BRANCH_NAME}"
+          git commit -am "Bump version to ${NEW_VERSION}"
+          git push -u origin HEAD
+          DIFF_URL="https://github.com/${GITHUB_REPOSITORY}/compare/${OLD_VERSION}...main"
+          gh pr create --title "Bump version to ${NEW_VERSION}" --body "${DIFF_URL}" --draft
+          gh pr merge --merge --delete-branch
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} 
+      - name: Create Release
+        run: |
+          gh release create ${{github.ref_name}} --generate-notes [attachment-file]
+        env:
+          GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN}}
