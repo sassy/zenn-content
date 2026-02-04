@@ -20,7 +20,7 @@
   },
   "homepage": "https://github.com/sassy/zenn-content#readme",
   "dependencies": {
-    "zenn-cli": "^0.2.0"
+    "zenn-cli": "^0.4.0"
   },
   "devDependencies": {
     "textlint": "15.2.1",
